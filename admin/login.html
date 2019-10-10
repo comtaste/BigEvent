@@ -83,6 +83,10 @@
                 success: function(data) {
                     console.log(data);
 
+                    if (data.code == 200) {
+                        $('.modal-body>p').text('登录成功');
+                    }
+
                 }
             });
         });
