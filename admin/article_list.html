@@ -13,6 +13,8 @@
     <script src="./libs/jquery-1.12.4.min.js"></script>
     <!-- 引入模板引擎js文件 -->
     <script src="./libs/template-web.js"></script>
+    <!-- 分页插件 -->
+    <script src="./libs/jquery.twbsPagination.js"></script>
 </head>
 
 <body>
@@ -69,9 +71,139 @@
                 </tbody>
             </table>
             <div class="row text-center">
+                <!-- 分页插件html -->
+                <ul id="pagination" class="pagination-sm"></ul>
             </div>
         </div>
     </div>
+    <!-- 文章分类模板 -->
+    <script id="cat_list" type="text/html">
+        <option value="">所有分类</option>
+        {{each data v}}
+        <option value="{{v.id}}">{{v.name}}</option>
+        {{/each}}
+    </script>
+    <!--文章列表内容 -->
+    <script id="art_list" type="text/html">
+        {{each data.data v}}
+        <tr>
+            <td>{{v.title}}</td>
+            <td>{{v.author}}</td>
+            <td>{{v.category}}</td>
+            <td class="text-center">{{v.date}}</td>
+            <td class="text-center">{{v.state}}</td>
+            <td class="text-center">
+                <a href="article_edit.html?id={{v.id}}" class="btn btn-default btn-xs">编辑</a>
+                <a href="javascript:void(0);" data-id="{{v.id}}" class="btn btn-danger btn-xs delete">删除</a>
+            </td>
+        </tr>
+        {{/each}}
+    </script>
+
+    <script>
+        $(function() {
+            // 获取分类内容
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/admin/category/list',
+                type: 'get',
+                success: function(backData) {
+                    $('#selCategory').html(template('cat_list', backData));
+                }
+            });
+            // 筛选按钮
+            $('#btnSearch').click(function(e) {
+                // 阻止默认行为
+                e.preventDefault();
+
+                // ajax请求
+                getArticleList(1, true);
+
+                // 获取页面数据
+                // $.ajax({
+                //     url: 'http://localhost:8080/api/v1/admin/article/query',
+                //     type: 'get',
+                //     dataType: 'json',
+                //     data: {
+                //         type: $('#selCategory').val(),
+                //         state: $('#selStatus').val(),
+                //         page: 1,
+                //         perpage: 10
+                //     },
+                //     success: function(backData) {
+                //         $('.table>tbody').html(template('art_list', backData));
+                //         // 初始化分页插件
+                //         // 1.先销毁已经存在的插件
+                //         $('#pagination').twbsPagination('destroy');
+                //         // 2.初始化新的插件
+                //         $('#pagination').twbsPagination({
+                //             totalPages: backData.data.totalPage, //总页数
+                //             startPage: 1,
+                //             visiblePages: 6,
+                //             first: '首页',
+                //             prev: '上一页',
+                //             next: '下一页',
+                //             last: '尾页',
+                //             onPageClick: function(event, page) {
+                //                 $('#page-content').text('Page' + page);
+                //                 getArticleList(page);
+
+                //             }
+                //         });
+                //     }
+                // });
+            });
+
+            // 主动触发筛选点击事件
+            $('#btnSearch').trigger('click');
+
+
+
+
+
+            // 加载分页插件 loadPagination
+            function loadPagination(totalPage, startPage) {
+                // 初始化分页插件
+                // 1.先销毁已经存在的插件
+                $('#pagination').twbsPagination('destroy');
+                // 初始忽然新的插件
+                $('#pagination').twbsPagination({
+                    totalPages: totalPage, //总页数
+                    startPage: startPage, //起始页数
+                    visiblePages: 6, //可见页数
+                    first: '首页',
+                    prev: '上一页',
+                    next: '下一页',
+                    last: '尾页',
+                    onPageClick: function(event, page) {
+                        getArticleList(page);
+                    }
+                });
+            }
+
+            // 分页插件:点击页面展示对应页码数据
+            function getArticleList(currentPage, flag) {
+                $.ajax({
+                    url: 'http://localhost:8080/api/v1/admin/article/query',
+                    type: 'get',
+                    dataType: 'json',
+                    data: {
+                        type: $('#selCategory').val(),
+                        state: $('#selStatus').val(),
+                        page: currentPage,
+                        perpage: 10
+                    },
+                    success: function(backData) {
+                        $('.table>tbody').html(template('art_list', backData));
+                        if (flag) {
+
+                            loadPagination(backData.data.totalPage, currentPage);
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
 </body>
 
 </html>
