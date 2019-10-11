@@ -85,6 +85,17 @@
 
                     if (data.code == 200) {
                         $('.modal-body>p').text('登录成功');
+                        $('#myModal').modal();
+                        // 跳转到首页
+                        $('#myModal').on('hidden.bs.modal', function(e) {
+                            localStorage.setItem('token', data.token);
+                            window.location.href = "./index.html"
+                        });
+                    } else {
+                        // console.log('1111');
+
+                        $('.modal-body>p').text(data.msg);
+                        $('#myModal').modal();
                     }
 
                 }
